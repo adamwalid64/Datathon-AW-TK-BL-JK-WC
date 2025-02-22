@@ -1,0 +1,92 @@
+%pip install seaborn
+%pip install ipywidgets
+%pip install folium
+
+import pandas as pd
+import requests
+import seaborn as sns
+from ipywidgets import interact_manual, widgets
+from IPython.display import display
+import folium
+
+df = pd.read_csv("Parking_Violations_-_2023_-_Present.csv")
+dfLoc = pd.read_csv("Central_Point.csv")
+df['month'] = df['issued_date'].str.split('/').str[1]
+df['streets'] = df['location'].str.split().str[1]
+df['count'] = 1
+monthOrder=["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"]
+
+sns.barplot(data=df, x='month', y='amount', hue='amount', order=monthOrder) 
+df_subtracted = pd.DataFrame()
+df_subtracted = df.apply(lambda row: pd.Series({
+    'newLat_CityofSYR': dfLoc[' Lat'][0] - row['LAT'],
+    'newLong_CityofSYR': dfLoc[' Long'][0] - row['LONG'],
+    'newLat_OnondagaRes': dfLoc[' Lat'][1] - row['LAT'],
+    'newLong_OnondagaRes': dfLoc[' Long'][1] - row['LONG'],
+    'newLat_Camillus': dfLoc[' Lat'][2] - row['LAT'],
+    'newLong_Camillus': dfLoc[' Long'][2] - row['LONG'],
+    'newLat_Cicero': dfLoc[' Lat'][3] - row['LAT'],
+    'newLong_Cicero': dfLoc[' Long'][3] - row['LONG'],
+    'newLat_Clay': dfLoc[' Lat'][4] - row['LAT'],
+    'newLong_Clay': dfLoc[' Long'][4] - row['LONG'],
+    'newLat_DeWitt': dfLoc[' Lat'][5] - row['LAT'],
+    'newLong_DeWitt': dfLoc[' Long'][5] - row['LONG'],
+    'newLat_Elbridge': dfLoc[' Lat'][6] - row['LAT'],
+    'newLong_Elbridge': dfLoc[' Long'][6] - row['LONG'],
+    'newLat_Fabius': dfLoc[' Lat'][7] - row['LAT'],
+    'newLong_Fabius': dfLoc[' Long'][7] - row['LONG'],
+    'newLat_Geddes': dfLoc[' Lat'][8] - row['LAT'],
+    'newLong_Geddes': dfLoc[' Long'][8] - row['LONG'],
+    'newLat_LaFayette': dfLoc[' Lat'][9] - row['LAT'],
+    'newLong_LaFayette': dfLoc[' Long'][9] - row['LONG'],
+    'newLat_Lysander': dfLoc[' Lat'][10] - row['LAT'],
+    'newLong_Lysander': dfLoc[' Long'][10] - row['LONG'],
+    'newLat_Manlius': dfLoc[' Lat'][11] - row['LAT'],
+    'newLong_Manlius': dfLoc[' Long'][11] - row['LONG'],
+    'newLat_Marcellus': dfLoc[' Lat'][12] - row['LAT'],
+    'newLong_Marcellus': dfLoc[' Long'][12] - row['LONG'],
+    'newLat_TownOfOnondaga': dfLoc[' Lat'][13] - row['LAT'],
+    'newLong_TownOfOnondaga': dfLoc[' Long'][13] - row['LONG'],
+    'newLat_Otisco': dfLoc[' Lat'][14] - row['LAT'],
+    'newLong_Otisco': dfLoc[' Long'][14] - row['LONG'],
+    'newLat_Pompey': dfLoc[' Lat'][15] - row['LAT'],
+    'newLong_Pompey': dfLoc[' Long'][15] - row['LONG'],
+    'newLat_Salina': dfLoc[' Lat'][16] - row['LAT'],
+    'newLong_Salina': dfLoc[' Long'][16] - row['LONG'],
+    'newLat_Skaneateles': dfLoc[' Lat'][17] - row['LAT'],
+    'newLong_Skaneateles': dfLoc[' Long'][17] - row['LONG'],
+    'newLat_Spafford': dfLoc[' Lat'][18] - row['LAT'],
+    'newLong_Spafford': dfLoc[' Long'][18] - row['LONG'],
+    'newLat_Tully': dfLoc[' Lat'][19] - row['LAT'],
+    'newLong_Tully': dfLoc[' Long'][19] - row['LONG'],
+    'newLat_VanBuren': dfLoc[' Lat'][20] - row['LAT'],
+    'newLong_VanBuren': dfLoc[' Long'][20] - row['LONG']}), axis=1)
+
+# Compute the sum of each lat-long difference
+for loc in ['CityofSYR', 'OnondagaRes', 'Camillus', 'Cicero', 'Clay', 'DeWitt',
+            'Elbridge', 'Fabius', 'Geddes', 'LaFayette', 'Lysander', 'Manlius',
+            'Marcellus', 'TownOfOnondaga', 'Otisco', 'Pompey', 'Salina',
+            'Skaneateles', 'Spafford', 'Tully', 'VanBuren']:
+    df_subtracted[f'added_{loc}'] = abs(df_subtracted[f'newLat_{loc}'] + df_subtracted[f'newLong_{loc}'])
+
+#df_subtracted
+#df_added = df_subtracted.loc[:, 'added_CityofSYR':'added_VanBuren']
+#df_added
+
+
+# create df for each row to see whose added location is closest to 0 - meaning they're in that town
+df_added = df_added.dropna(how='all', axis=0)     # Drop rows where all values are NaN
+df_added = df_added.apply(pd.to_numeric, errors='coerce')  # Convert to numbers, set errors to NaN
+df_added = df_added.fillna(float('inf'))
+df_added['closest_town'] = df_added.idxmin(axis=1)
+df_added
+#df_added['closest_town'].value_counts()
+
+df_added['count'] = 1
+df_added['town'] = df_added['closest_town'].str.split('_').str[1]
+sns.barplot(data=df_added, y='town', x='count', estimator=sum, color='#ffb84d')
+
+loc_map = folium.Map(location = [43.0481, -76.1474], zoom_start=9)   # center of Syracuse
+for index, row in dfLoc.iterrows():    
+        folium.Marker(location=[row['Lat'], row['Long']], tooltip=row['Location']).add_to(loc_map)
+loc_map
