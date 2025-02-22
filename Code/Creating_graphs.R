@@ -73,10 +73,22 @@ issue_time <- ggplot(parking_tickets)+
               ylab("Number of Tickets")+
               theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+#Creates bar graph showing the number of different prices of tickets
+price_graph <- ggplot(parking_tickets %>% filter(amount >= 0 & amount <= 100))+
+               aes(x = amount)+
+               geom_bar(color = "#ffb84d", fill = "#ff9900")+
+               ggtitle("Amount of Issued Tickets")+
+               xlab("Price of Tickets")+
+               ylab("Number of Tickets")
+
 #Outputs the graph
 issued_months
 
 issue_day
 
 issue_time
+
+price_graph
+
+write_excel_csv(parking_tickets, '/Users/tylerkatz/Documents/Datathon/Datathon-AW-TK-BL-JK-WC/Data/Parking_violations_visualization_data.csv')
 
