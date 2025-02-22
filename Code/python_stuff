@@ -75,11 +75,11 @@ for loc in ['CityofSYR', 'OnondagaRes', 'Camillus', 'Cicero', 'Clay', 'DeWitt',
 
 
 # create df for each row to see whose added location is closest to 0 - meaning they're in that town
-df_added = df_added.dropna(how='all', axis=0)     # Drop rows where all values are NaN
-df_added = df_added.apply(pd.to_numeric, errors='coerce')  # Convert to numbers, set errors to NaN
-df_added = df_added.fillna(float('inf'))
-df_added['closest_town'] = df_added.idxmin(axis=1)
-df_added
+df_added = df_added.dropna(how='all', axis=0)     # Drop rows where all values are NaN -- Chatgpt assited
+df_added = df_added.apply(pd.to_numeric, errors='coerce')  # Convert to numbers, set errors to NaN -- Chatgpt assited
+df_added = df_added.fillna(float('inf'))                    # Chatgpt assited
+df_added['closest_town'] = df_added.idxmin(axis=1)        # Chatgpt assited
+#df_added
 #df_added['closest_town'].value_counts()
 
 df_added['count'] = 1
